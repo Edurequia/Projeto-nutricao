@@ -1,4 +1,4 @@
-import { Box, Button, Grid, TextField, Typography, useMediaQuery } from "@mui/material";
+import { Button, Grid, TextField, Typography, useMediaQuery } from "@mui/material";
 import { useState } from "react";
 
 const Login = () => {
@@ -32,7 +32,7 @@ const Login = () => {
                   
                 }}
                 >
-                <Typography textAlign='center' variant="h4" component="h1" color="primary.main">
+                <Typography textAlign='center' variant="h4" component="h1" color="secondary.main">
                     Login
                 </Typography>
               <TextField

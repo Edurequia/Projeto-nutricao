@@ -1,22 +1,22 @@
 import { createTheme } from "@mui/material";
-import { purple } from "@mui/material/colors";
+import { amber, blueGrey, brown, deepOrange, grey, purple } from "@mui/material/colors";
 
 export const LigthTheme = createTheme({
     palette: {
         primary: {
-            main: '#7cb342',
-            dark: '#558b2f',
-            light: '#8bc34a',
+            main: deepOrange[700],
+            dark: '#e64a19',
+            light: '#ff8a65',
             contrastText: '#ffffff'
         },
         secondary: {
-            main: purple[500],
-            dark: purple[700],
-            light: purple[300],
+            main: blueGrey[700],
+            dark: blueGrey[700],
+            light: blueGrey[300],
             contrastText: '#ffffff'
         },
         background: {
-            default: '#f1f8e9',
+            default: grey[50],
             paper: '#ffffff'
         }
     }
