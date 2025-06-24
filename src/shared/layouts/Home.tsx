@@ -1,9 +1,11 @@
 import { Box, Button, Card, CardActions, CardContent, CardMedia, Divider, Grid, Link, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 export const Home = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+    const navigate = useNavigate();
 
     return (
         <>
@@ -36,7 +38,7 @@ export const Home = () => {
                                 <Typography variant="h6" gutterBottom color="secondary.main">
                                     Registre sua receita
                                 </Typography>
-                                <Button variant="contained" color="primary" fullWidth>
+                                <Button variant="contained" color="primary" fullWidth onClick={() => navigate("/cadastrar")}>
                                     Cadastrar
                                 </Button>
                             </CardContent>
@@ -49,7 +51,7 @@ export const Home = () => {
                                 <Typography variant="h6" gutterBottom color="secondary.main">
                                     Visualizar receitas
                                 </Typography>
-                                <Button variant="outlined" color="primary" fullWidth>
+                                <Button variant="outlined" color="primary" fullWidth onClick={() => navigate("/listaReceitas")}>
                                     Ver receitas
                                 </Button>
                             </CardContent>

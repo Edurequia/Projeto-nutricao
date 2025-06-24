@@ -3,6 +3,11 @@ import { useAppThemeContext } from '../shared/contexts'
 import Login from '../shared/layouts/Login';
 import Header from '../shared/layouts/Header';
 import Home from '../shared/layouts/Home';
+import { CadastroPreparacao } from '../shared/layouts/CadastroPreparacao';
+import { ListaReceitas } from '../shared/layouts/ListaReceitas';
+import ReceitaView from '../shared/layouts/ReceitaView';
+import PaginaReceita from '../shared/layouts/PaginaReceita';
+import PrivateRoute from '../shared/layouts/PrivateRoute';
 
 
 export const AppRoutes = () => {
@@ -18,14 +23,40 @@ export const AppRoutes = () => {
 
   return (
     <>
-    <Header logo={logo} />
+      <Header logo={logo} />
 
-    <Routes>
-      <Route path="login" element={<Login />} />
-      <Route path="pagina-inicial" element={<Home />} />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/pagina-inicial" element={<Home />} />
 
-      <Route path="*" element={<Navigate to="/pagina-inicial" />} />
-    </Routes>
+        <Route
+          path="/cadastrar"
+          element={
+            <PrivateRoute>
+              <CadastroPreparacao />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/listaReceitas"
+          element={
+            <PrivateRoute>
+              <ListaReceitas />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/receita"
+          element={
+            <PrivateRoute>
+              <PaginaReceita />
+            </PrivateRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/pagina-inicial" />} />
+      </Routes>
     </>
   )
 }

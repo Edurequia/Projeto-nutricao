@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type LogoClienteProps = {
   logo: string;
@@ -44,9 +45,10 @@ const LogoCliente = ({ logo }: LogoClienteProps) => {
 };
 
 const LoginButton = () => {
+  const navigate = useNavigate();
 
   return (
-    <Button color="inherit" size='large'>
+    <Button color="inherit" size='large' onClick={() => navigate("/login")}>
       Login
     </Button>
   );
