@@ -1,14 +1,16 @@
-import { Button, Grid, TextField, Typography, useMediaQuery } from "@mui/material";
+import { Button, Grid, TextField, Typography, Box } from "@mui/material";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import apiAuth from "../../api/apiAuth";
-
+import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
   const [loading, setLoading] = useState(false);
 
@@ -16,10 +18,16 @@ const Login = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiAuth.post('/auth/login', { email, password });
+      const response = await apiAuth.post("/auth/login", {
+        login: email,
+        password,
+      });
       const token = response.data.token;
-      localStorage.setItem('jwtToken', token);
-      navigate('/pagina-inicial');
+      login(token);
+
+      // Navigate to the page the user was trying to access, or to the home page
+      const from = location.state?.from?.pathname || "/pagina-inicial";
+      navigate(from, { replace: true });
     } catch (err: any) {
       console.error("Erro no login:", err);
       if (err.response?.data?.message) {
@@ -34,30 +42,37 @@ const Login = () => {
     }
   };
 
-  const handleCadastro = () => {
-    navigate("/cadastro");
-  };
-
   return (
-    <Grid container justifyContent="center" alignItems="center" sx={{
-      minHeight: '100vh',
-    }} >
-      <Grid size={{ xs: 12, sm: 8, md: 6 }}>
-        <Grid
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="100vh"
+    >
+      <Box
+        width={{ xs: "100%", sm: "80%", md: "60%" }}
+        maxWidth={550}
+        mx="auto"
+        px={2}
+      >
+        <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
+            display: "flex",
+            flexDirection: "column",
             padding: 4,
-            border: '1px solid #ddd',
+            border: "1px solid #ddd",
             borderRadius: 3,
             boxShadow: 2,
-            backgroundColor: 'background.paper',
-            maxWidth: 550,
+            backgroundColor: "background.paper",
             gap: 2,
-            margin: 'auto',
           }}
         >
-          <Typography textAlign='center' variant="h4" component="h1" color="secondary.main">
+          <Typography
+            textAlign="center"
+            variant="h4"
+            component="h1"
+            color="secondary.main"
+          >
             Login
           </Typography>
           <TextField
@@ -85,20 +100,6 @@ const Login = () => {
               {error}
             </Typography>
           )}
-          <Grid sx={{ mb: 2 }}>
-            <Typography
-              variant="subtitle1"
-              textAlign='center'
-              sx={{
-                textDecoration: 'none',
-                color: 'primary.main',
-                cursor: 'pointer',
-              }}
-              onClick={handleCadastro}
-            >
-              Novo aqui? Cadastre-se
-            </Typography>
-          </Grid>
           <Button
             variant="contained"
             color="primary"
@@ -107,11 +108,11 @@ const Login = () => {
             onClick={handleLogin}
             disabled={loading}
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? "Entrando..." : "Entrar"}
           </Button>
-        </Grid>
-      </Grid>
-    </Grid>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
