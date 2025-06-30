@@ -8,6 +8,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^7.1.1",
+    "@mui/system": "^7.1.1",
     "axios": "^1.10.0",
     "graphql": "^16.11.0",
     "graphql-request": "^7.2.0",

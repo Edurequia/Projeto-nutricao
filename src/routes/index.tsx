@@ -1,25 +1,29 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAppThemeContext } from '../shared/contexts'
-import Login from '../shared/layouts/Login';
-import Header from '../shared/layouts/Header';
-import Home from '../shared/layouts/Home';
-import { CadastroPreparacao } from '../shared/layouts/CadastroPreparacao';
-import { ListaReceitas } from '../shared/layouts/ListaReceitas';
-import ReceitaView from '../shared/layouts/ReceitaView';
-import PaginaReceita from '../shared/layouts/PaginaReceita';
-import PrivateRoute from '../shared/layouts/PrivateRoute';
-
+import Login from '../shared/layouts/Login'
+import Header from '../shared/layouts/Header'
+import Home from '../shared/layouts/Home'
+import { CadastroPreparacao } from '../shared/layouts/CadastroPreparacao'
+import { ListaReceitas } from '../shared/layouts/ListaReceitas'
+import ReceitaView from '../shared/layouts/ReceitaView'
+import PaginaReceita from '../shared/layouts/PaginaReceita'
+import PrivateRoute from '../shared/layouts/PrivateRoute'
 
 export const AppRoutes = () => {
-  const themeContext = useAppThemeContext();
+  const themeContext = useAppThemeContext()
 
   if (!themeContext) {
-    return <div>Error: Theme context is missing. Please ensure AppThemeProvider is wrapping your app.</div>;
+    return (
+      <div>
+        Error: Theme context is missing. Please ensure AppThemeProvider is
+        wrapping your app.
+      </div>
+    )
   }
 
-  const logo = '../images/logo.png';
+  const logo = '../images/logo.png'
 
-  const { toggleTheme } = themeContext;
+  const { toggleTheme } = themeContext
 
   return (
     <>
@@ -47,7 +51,7 @@ export const AppRoutes = () => {
         />
 
         <Route
-          path="/receita"
+          path="/receita/:id"
           element={
             <PrivateRoute>
               <PaginaReceita />

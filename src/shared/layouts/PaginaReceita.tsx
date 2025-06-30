@@ -1,193 +1,415 @@
-import React, { useEffect, useState } from 'react';
-import ReceitaView from './ReceitaView';
-import { Typography, CircularProgress, Box, AppBar, Toolbar, IconButton } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import ReceitaView from './ReceitaView'
+import { Typography, CircularProgress, Box } from '@mui/material'
+import { useNavigate, useParams } from 'react-router-dom'
 
-const theme = createTheme({
-    palette: {
-        primary: {
-            main: '#6200EE',
-        },
-        background: {
-            default: '#f5f5f5',
-        },
-    },
-});
-
-interface Ingrediente {
-    nome: string;
-    medidaCaseira: string;
-    pb: string;
-    pl: string;
-    fc: string;
-    custo1: string;
-    custo2: string;
+interface Usuario {
+  id: number
+  nome: string
+  email: string
 }
 
-interface InformacaoNutricional {
-    nome: string;
-    perCapitaPL: string;
-    ptn: string;
-    cho: string;
-    lip: string;
-    sodio: string;
-    gorduraSaturada: string;
+export interface Ingrediente {
+  id?: number
+  nome: string
+  medidaCaseira?: string
+  pb?: number
+  pl?: number
+  fc?: number
+  custo1?: number
+  custo2?: number
+  proteinas?: number
+  carboidratos?: number
+  lipidios?: number
+  sodio?: number
+  gordSaturada?: number
+  usuarioCriadorIngrediente?: Usuario
+}
+
+export interface IngredienteUsado {
+  id?: number
+  ingrediente: Ingrediente
+  custoCompra?: number
+  custoUso?: number
+  fatorCoccao?: number
+  gramagemComprada?: number
+  perCapitaPL?: number
+  pesoBruto?: number
+  pesoLiquido?: number
+  medidaCaseira?: string
 }
 
 interface ReceitaData {
-    nomeReceita: string;
-    categoria: string;
-    ingredientes: Ingrediente[];
-    equipamentosUtilizados: string[];
-    modoPreparo: string;
-    custoTotal: string;
-    tempoPreparo: string;
-    custoPorPorcao: string;
-    pesoPorcao: string;
-    numeroPorcoes: string;
-    fcc: string;
-    perfilNutricional: InformacaoNutricional[];
+  id?: number
+  nomePreparacao: string
+  categoria: string
+  custoPerCapta: number
+  custoTotal: number
+  equipUtensilios: string
+  fccPreparacao: number
+  ingredientesUsados: IngredienteUsado[]
+  medidaCaseira: string
+  modoPreparo: string
+  numPorcoes: number
+  numero: number
+  rendimento: number
+  tempoPorcoes: number
+  usuarioCriadorPreparacao: null
+  perfilNutricional?: InformacaoNutricional[]
 }
 
-const dadosReceitaMock: ReceitaData = {
-    nomeReceita: "Omelete Simples",
-    categoria: "Café da Manhã",
-    ingredientes: [
-        { nome: "Ovo", medidaCaseira: "2 unidades", pb: "100g", pl: "80g", fc: "64g", custo1: "R$1,10", custo2: "R$0,82" },
-        { nome: "Queijo prato", medidaCaseira: "1 fatia", pb: "30g", pl: "30g", fc: "40g", custo1: "R$2,90", custo2: "R$2,00" },
-        { nome: "Óleo vegetal", medidaCaseira: "2 colheres de sopa", pb: "9g", pl: "9g", fc: "1.0", custo1: "R$0,15", custo2: "R$0,15" },
-    ],
-    equipamentosUtilizados: ["Panela antiaderente", "Faca pequena", "Tigela", "Garfo"],
-    modoPreparo: "1. Bata os ovos em uma tigela com sal e pimenta.\n2. Aqueça um pouco de óleo na panela.\n3. Despeje os ovos batidos e cozinhe em fogo médio.\n4. Quando começar a firmar, adicione o queijo ralado.\n5. Dobre a omelete ao meio e cozinhe por mais um minuto. Sirva quente.",
-    custoTotal: "R$ 4,15",
-    tempoPreparo: "10 min",
-    custoPorPorcao: "R$ 4,15",
-    pesoPorcao: "150g",
-    numeroPorcoes: "1",
-    fcc: "1.0",
-    perfilNutricional: [
-        { nome: "Ovo", perCapitaPL: "80g", ptn: "7g", cho: "0.6g", lip: "6g", sodio: "70mg", gorduraSaturada: "2g" },
-        { nome: "Queijo Prato", perCapitaPL: "30g", ptn: "7.5g", cho: "0.2g", lip: "9g", sodio: "180mg", gorduraSaturada: "5g" },
-        { nome: "Óleo Vegetal", perCapitaPL: "9g", ptn: "0g", cho: "0g", lip: "9g", sodio: "0mg", gorduraSaturada: "1g" },
-    ],
-};
+export interface InformacaoNutricional {
+  nome: string
+  perCapta?: number
+  proteinas?: number
+  carboidratos?: number
+  lipidios?: number
+  sodio?: number
+  gordSaturada?: number
+}
+
+const API_BASE_URL = 'http://localhost:8080/preparacoes'
 
 const PaginaReceita = () => {
-    const [dadosReceita, setDadosReceita] = useState<ReceitaData | null>(null);
-    const [carregando, setCarregando] = useState(true);
-    const [erro, setErro] = useState<Error | null>(null);
-    const navigate = useNavigate();
+  const [dadosReceita, setDadosReceita] = useState<ReceitaData | null>(null)
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState<Error | null>(null)
+  const navigate = useNavigate()
+  const { id } = useParams()
 
-    useEffect(() => {
-        const buscarReceita = async () => {
-            try {
-                setCarregando(true);
-                setTimeout(() => {
-                    setDadosReceita(dadosReceitaMock);
-                    setCarregando(false);
-                }, 1000);
-            } catch (err) {
-                setErro(err as Error);
-                setCarregando(false);
-            }
-        };
+  useEffect(() => {
+    const buscarReceita = async () => {
+      try {
+        setCarregando(true)
 
-        buscarReceita();
-    }, []);
+        if (!id) {
+          setDadosReceita({
+            nomePreparacao: '',
+            categoria: '',
+            ingredientesUsados: [],
+            equipUtensilios: '',
+            modoPreparo: '',
+            custoTotal: 0,
+            tempoPorcoes: 0,
+            custoPerCapta: 0,
+            medidaCaseira: '',
+            numPorcoes: 0,
+            numero: 0,
+            rendimento: 0,
+            fccPreparacao: 0,
+            usuarioCriadorPreparacao: null,
+            perfilNutricional: []
+          })
+          setCarregando(false)
+          return
+        }
 
+        const response = await fetch(`${API_BASE_URL}/${id}`)
+        if (!response.ok) {
+          throw new Error('Erro ao carregar receita')
+        }
+        const data: ReceitaData = await response.json()
 
-    const handleFieldChange = (field: keyof ReceitaData, value: string) => {
-        setDadosReceita(prev => prev ? { ...prev, [field]: value } : null);
-    };
+        // Mapeia os ingredientes para o perfil nutricional
+        const perfilNutricional = data.ingredientesUsados.map(ingrediente => ({
+          nome: ingrediente.ingrediente.nome,
+          perCapta: ingrediente.perCapitaPL,
+          proteinas: ingrediente.ingrediente.proteinas,
+          carboidratos: ingrediente.ingrediente.carboidratos,
+          lipidios: ingrediente.ingrediente.lipidios,
+          sodio: ingrediente.ingrediente.sodio,
+          gordSaturada: ingrediente.ingrediente.gordSaturada
+        }))
 
-    const handleIngredientChange = (index: number, field: keyof Ingrediente, value: string) => {
-        setDadosReceita(prev => {
-            if (!prev) return null;
-            const novosIngredientes = [...prev.ingredientes];
-            novosIngredientes[index] = { ...novosIngredientes[index], [field]: value };
-            return { ...prev, ingredientes: novosIngredientes };
-        });
-    };
-
-    const handleNutritionalInfoChange = (index: number, field: keyof InformacaoNutricional, value: string) => {
-        setDadosReceita(prev => {
-            if (!prev) return null;
-            const novoPerfil = [...prev.perfilNutricional];
-            novoPerfil[index] = { ...novoPerfil[index], [field]: value };
-            return { ...prev, perfilNutricional: novoPerfil };
-        });
-    };
-
-    const handleEquipmentUsedChange = (index: number, value: string) => {
-        setDadosReceita(prev => {
-            if (!prev) return null;
-            const novosEquipamentos = [...prev.equipamentosUtilizados];
-            novosEquipamentos[index] = value;
-            return { ...prev, equipamentosUtilizados: novosEquipamentos };
-        });
-    };
-
-
-    const handleSalvarReceita = () => {
-        console.log("Receita salva!", dadosReceita);
-
-        alert("Receita salva com sucesso! (Verifique o console para os dados)");
-    };
-
-    const handleVoltar = () => {
-        navigate("/listaReceitas");
-    };
-
-    if (carregando) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <CircularProgress />
-                <Typography sx={{ ml: 2 }}>Carregando receita...</Typography>
-            </Box>
-        );
+        setDadosReceita({
+          ...data,
+          perfilNutricional
+        })
+        setCarregando(false)
+      } catch (err) {
+        setErro(err as Error)
+        setCarregando(false)
+      }
     }
 
-    if (erro) {
-        return <Typography color="error">Erro ao carregar receita: {erro.message}</Typography>;
-    }
+    buscarReceita()
+  }, [id])
 
-    if (!dadosReceita) {
-        return <Typography>Nenhuma receita encontrada.</Typography>;
-    }
+  const handleFieldChange = (field: keyof ReceitaData, value: any) => {
+    setDadosReceita(prev => (prev ? { ...prev, [field]: value } : null))
+  }
 
+  const handleIngredientChange = (
+    index: number,
+    field: keyof IngredienteUsado | 'nome',
+    value: string | number
+  ) => {
+    setDadosReceita(prev => {
+      if (!prev) return null
+      const novosIngredientes = [...prev.ingredientesUsados]
+      const ingredienteAntigo = novosIngredientes[index].ingrediente
+
+      const numericValue =
+        typeof value === 'string' && field !== 'nome'
+          ? parseFloat(value) || 0
+          : value
+
+      if (field === 'nome') {
+        novosIngredientes[index] = {
+          ...novosIngredientes[index],
+          ingrediente: {
+            ...ingredienteAntigo,
+            nome: value as string
+          }
+        }
+      } else {
+        novosIngredientes[index] = {
+          ...novosIngredientes[index],
+          [field]: numericValue
+        }
+      }
+
+      const novoPerfilNutricional = [...(prev.perfilNutricional || [])]
+      if (novoPerfilNutricional[index]) {
+        if (field === 'nome') {
+        } else {
+          novoPerfilNutricional[index] = {
+            ...novoPerfilNutricional[index],
+            [field]: numericValue
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        ingredientesUsados: novosIngredientes,
+        perfilNutricional: novoPerfilNutricional
+      }
+    })
+  }
+
+  const handleAddIngredient = () => {
+    setDadosReceita(prev => {
+      if (!prev) return null
+      const novoIngredienteUsado: IngredienteUsado = {
+        ingrediente: {
+          nome: '',
+          proteinas: 0,
+          carboidratos: 0,
+          lipidios: 0
+        }
+      }
+
+      const novoPerfilNutricional = [
+        ...(prev.perfilNutricional || []),
+        {
+          nome: '',
+          proteinas: 0,
+          carboidratos: 0,
+          lipidios: 0
+        }
+      ]
+
+      return {
+        ...prev,
+        ingredientesUsados: [...prev.ingredientesUsados, novoIngredienteUsado],
+        perfilNutricional: novoPerfilNutricional
+      }
+    })
+  }
+
+  const handleRemoveIngredient = (index: number) => {
+    setDadosReceita(prev => {
+      if (!prev) return null
+      const novosIngredientes = [...prev.ingredientesUsados]
+      novosIngredientes.splice(index, 1)
+
+      const novoPerfilNutricional = [...(prev.perfilNutricional || [])]
+      novoPerfilNutricional.splice(index, 1)
+
+      return {
+        ...prev,
+        ingredientesUsados: novosIngredientes,
+        perfilNutricional: novoPerfilNutricional
+      }
+    })
+  }
+
+  const handleEquipmentListChange = (equipamentos: string[]) => {
+    setDadosReceita(prev =>
+      prev
+        ? {
+            ...prev,
+            equipUtensilios: equipamentos.map(e => e.trim()).join(',')
+          }
+        : null
+    )
+  }
+
+  const handleNutritionalInfoChange = (
+    index: number,
+    field: keyof InformacaoNutricional,
+    value: string | number
+  ) => {
+    setDadosReceita(prev => {
+      if (!prev || !prev.perfilNutricional) return null
+
+      const numericValue =
+        typeof value === 'string' ? parseFloat(value) || 0 : value
+      const novoPerfil = [...prev.perfilNutricional]
+      novoPerfil[index] = { ...novoPerfil[index], [field]: numericValue }
+
+      // Atualiza também o ingrediente correspondente
+      const novosIngredientes = [...prev.ingredientesUsados]
+      if (novosIngredientes[index]) {
+        novosIngredientes[index] = {
+          ...novosIngredientes[index],
+          [field]: numericValue
+        }
+      }
+
+      return {
+        ...prev,
+        perfilNutricional: novoPerfil,
+        ingredientesUsados: novosIngredientes
+      }
+    })
+  }
+
+  const validarDados = () => {
+    if (!dadosReceita?.nomePreparacao.trim()) {
+      throw new Error('Nome da preparação é obrigatório')
+    }
+  }
+
+  const handleSalvarReceita = async () => {
+    if (!dadosReceita) return
+
+    validarDados()
+
+    try {
+      setCarregando(true)
+      const method = dadosReceita.id ? 'PUT' : 'POST'
+      const url = dadosReceita.id
+        ? `${API_BASE_URL}/editarPreparacao`
+        : `${API_BASE_URL}/criarPreparacao`
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dadosReceita)
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(
+          `Erro ao salvar receita: ${errorText || response.statusText}`
+        )
+      }
+
+      const data = await response.json()
+      setDadosReceita(data)
+
+      if (!dadosReceita.id && data.id) {
+        navigate(`/receita/${data.id}`)
+        return
+      }
+    } catch (err) {
+      setErro(err as Error)
+    } finally {
+      setCarregando(false)
+      navigate('/listaReceitas')
+    }
+  }
+
+  const handleVoltar = () => {
+    navigate('/listaReceitas')
+  }
+
+  if (carregando && id) {
     return (
-        <ReceitaView
-            nomeReceita={dadosReceita.nomeReceita}
-            categoria={dadosReceita.categoria}
-            ingredientes={dadosReceita.ingredientes}
-            equipamentosUtilizados={dadosReceita.equipamentosUtilizados}
-            modoPreparo={dadosReceita.modoPreparo}
-            custoTotal={dadosReceita.custoTotal}
-            tempoPreparo={dadosReceita.tempoPreparo}
-            custoPorPorcao={dadosReceita.custoPorPorcao}
-            pesoPorcao={dadosReceita.pesoPorcao}
-            numeroPorcoes={dadosReceita.numeroPorcoes}
-            fcc={dadosReceita.fcc}
-            perfilNutricional={dadosReceita.perfilNutricional}
-            onNomeReceitaChange={(value) => handleFieldChange('nomeReceita', value)}
-            onCategoriaChange={(value) => handleFieldChange('categoria', value)}
-            onModoPreparoChange={(value) => handleFieldChange('modoPreparo', value)}
-            onCustoTotalChange={(value) => handleFieldChange('custoTotal', value)}
-            onTempoPreparoChange={(value) => handleFieldChange('tempoPreparo', value)}
-            onCustoPorPorcaoChange={(value) => handleFieldChange('custoPorPorcao', value)}
-            onPesoPorcaoChange={(value) => handleFieldChange('pesoPorcao', value)}
-            onNumeroPorcoesChange={(value) => handleFieldChange('numeroPorcoes', value)}
-            onFccChange={(value) => handleFieldChange('fcc', value)}
-            onIngredientChange={handleIngredientChange}
-            onNutritionalInfoChange={handleNutritionalInfoChange}
-            onEquipmentUsedChange={handleEquipmentUsedChange}
-            onVoltarClick={handleVoltar}
-            onEditarClick={handleSalvarReceita}
-        />
-    );
-};
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Carregando receita...</Typography>
+      </Box>
+    )
+  }
 
-export default PaginaReceita;
+  if (erro) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography color="error">
+          Erro ao carregar receita: {erro.message}
+        </Typography>
+      </Box>
+    )
+  }
+
+  if (!dadosReceita && !id) {
+    return <Typography>Nenhuma receita encontrada.</Typography>
+  }
+
+  return (
+    <>
+      {dadosReceita && (
+        <ReceitaView
+          nomeReceita={dadosReceita.nomePreparacao}
+          categoria={dadosReceita.categoria}
+          ingredientes={dadosReceita.ingredientesUsados}
+          equipamentosUtilizados={dadosReceita.equipUtensilios.split(',')}
+          modoPreparo={dadosReceita.modoPreparo}
+          custoTotal={dadosReceita.custoTotal.toString()}
+          tempoPreparo={dadosReceita.tempoPorcoes.toString()}
+          custoPorPorcao={dadosReceita.custoPerCapta.toString()}
+          pesoPorcao={dadosReceita.medidaCaseira}
+          numeroPorcoes={dadosReceita.numPorcoes.toString()}
+          fcc={dadosReceita.fccPreparacao.toString()}
+          perfilNutricional={dadosReceita.perfilNutricional || []}
+          onNomeReceitaChange={value =>
+            handleFieldChange('nomePreparacao', value)
+          }
+          onCategoriaChange={value => handleFieldChange('categoria', value)}
+          onModoPreparoChange={value => handleFieldChange('modoPreparo', value)}
+          onCustoTotalChange={value =>
+            handleFieldChange('custoTotal', parseFloat(value) || 0)
+          }
+          onTempoPreparoChange={value =>
+            handleFieldChange('tempoPorcoes', parseFloat(value) || 0)
+          }
+          onCustoPorPorcaoChange={value =>
+            handleFieldChange('custoPerCapta', parseFloat(value) || 0)
+          }
+          onPesoPorcaoChange={value =>
+            handleFieldChange('medidaCaseira', value)
+          }
+          onNumeroPorcoesChange={value =>
+            handleFieldChange('numPorcoes', parseInt(value) || 0)
+          }
+          onFccChange={value =>
+            handleFieldChange('fccPreparacao', parseFloat(value) || 0)
+          }
+          onNutritionalInfoChange={handleNutritionalInfoChange}
+          onIngredientChange={handleIngredientChange}
+          onAddIngredient={handleAddIngredient}
+          onRemoveIngredient={handleRemoveIngredient}
+          onEquipmentUsedChange={handleEquipmentListChange}
+          onVoltarClick={handleVoltar}
+          onEditarClick={handleSalvarReceita}
+          isEditing={true}
+          onAddIngrediente={handleAddIngredient}
+        />
+      )}
+    </>
+  )
+}
+
+export default PaginaReceita
